@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Trésorerie Ouvertures72</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --jaune: #EF9F27;
+      --vert:  #97C459;
+      --orange: #D85A30;
+      --bg: #f5f6fa;
+      --card: #ffffff;
+      --border: #e4e6ef;
+      --text: #2d2d3a;
+      --muted: #8a8a9a;
+      --header-h: 60px;
+      --tabs-h: 50px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    header {
+      height: var(--header-h);
+      background: #1a1a2e;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      gap: 1rem;
+    }
+
+    .header-logo {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+    }
+
+    .header-logo span {
+      opacity: 0.5;
+      font-weight: 400;
+      margin-left: 0.4rem;
+    }
+
+    .month-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .month-nav button {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .month-nav button:hover { background: rgba(255,255,255,0.2); }
+
+    #mois-label {
+      font-size: 1rem;
+      font-weight: 700;
+      min-width: 150px;
+      text-align: center;
+    }
+
+    .patron-link {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.6);
+      text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 0.3rem 0.7rem;
+      border-radius: 6px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .patron-link:hover { background: rgba(255,255,255,0.1); color: white; }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: var(--header-h);
+      z-index: 20;
+      height: var(--tabs-h);
+    }
+
+    .tab {
+      flex: 1;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 0 1rem;
+      border-bottom: 3px solid transparent;
+      transition: all 0.15s;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+
+    .tab:hover { color: var(--text); background: #fafafa; }
+    .tab.active { color: var(--text); border-bottom-color: currentColor; }
+    .tab[data-tab="fixes"].active    { color: var(--jaune); }
+    .tab[data-tab="variables"].active { color: var(--vert); }
+    .tab[data-tab="ponctuelles"].active { color: var(--orange); }
+    .tab[data-tab="ca"].active       { color: #1a1a2e; }
+
+    /* ── Content ── */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .tab-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    /* ── Table ── */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      font-size: 0.9rem;
+    }
+
+    .data-table thead th {
+      background: #f8f9fc;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .data-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    .data-table tbody tr:last-child { border-bottom: none; }
+    .data-table tbody tr:hover { background: #fafbff; }
+
+    .data-table td {
+      padding: 0.65rem 1rem;
+      vertical-align: middle;
+    }
+
+    .data-table tfoot td {
+      padding: 0.85rem 1rem;
+      border-top: 2px solid var(--border);
+      font-weight: 700;
+      font-size: 0.92rem;
+      background: #f8f9fc;
+    }
+
+    .td-label {
+      font-weight: 600;
+    }
+
+    .td-muted {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    /* ── Inputs ── */
+    .input-num, .input-text, .input-date {
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 0.4rem 0.6rem;
+      font-size: 0.9rem;
+      font-family: inherit;
+      color: var(--text);
+      background: #fafafa;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      width: 100%;
+    }
+
+    .input-num  { max-width: 130px; }
+    .input-date { max-width: 160px; }
+
+    .input-num:focus, .input-text:focus, .input-date:focus {
+      outline: none;
+      border-color: #7b91d1;
+      box-shadow: 0 0 0 3px rgba(123,145,209,0.15);
+      background: white;
+    }
+
+    /* ── Select statut ── */
+    .select-statut {
+      border-radius: 20px;
+      padding: 0.3rem 0.7rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border: 1.5px solid;
+      cursor: pointer;
+      font-family: inherit;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a8a9a'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.5rem center;
+      padding-right: 1.4rem;
+    }
+
+    .select-statut.statut-a_regler { background-color: #fff3e0; color: #bf360c; border-color: #ffcc80; }
+    .select-statut.statut-en_cours { background-color: #e3f2fd; color: #1565c0; border-color: #90caf9; }
+    .select-statut.statut-paye     { background-color: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
+
+    /* ── Boutons ── */
+    .btn-delete {
+      background: none;
+      border: 1px solid #ffcdd2;
+      color: #c62828;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .btn-delete:hover { background: #ffebee; border-color: #ef9a9a; }
+
+    .btn-add-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 1rem;
+      padding: 0.55rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1.5px dashed;
+      background: none;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+
+    .btn-add-fixes    { border-color: var(--jaune); color: var(--jaune); }
+    .btn-add-variables { border-color: var(--vert); color: var(--vert); }
+    .btn-add-ponctuelles { border-color: var(--orange); color: var(--orange); }
+
+    .btn-add-row:hover { background: rgba(0,0,0,0.03); }
+
+    .btn-primary {
+      padding: 0.6rem 1.4rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      transition: all 0.15s;
+      background: #1a1a2e;
+      color: white;
+    }
+
+    .btn-primary:hover { background: #2d2d50; }
+    .btn-primary:active { transform: scale(0.98); }
+
+    /* ── Formulaire d'ajout inline ── */
+    .add-row-form {
+      display: none;
+      background: #f8f9fc;
+      border: 1.5px dashed var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+      margin-top: 0.75rem;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+
+    .add-row-form.visible { display: flex; }
+
+    .add-row-form .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .add-row-form label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .add-row-form .btn-save-new {
+      padding: 0.45rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      color: white;
+      align-self: flex-end;
+    }
+
+    .add-row-form .btn-cancel-new {
+      padding: 0.45rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: white;
+      font-family: inherit;
+      align-self: flex-end;
+      color: var(--muted);
+    }
+
+    /* ── Onglet CA ── */
+    .ca-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    .ca-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .ca-card h2 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 1.2rem;
+      font-weight: 700;
+    }
+
+    .ca-input-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    #ca-input {
+      font-size: 1.6rem;
+      font-weight: 700;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 0.6rem 0.8rem;
+      width: 100%;
+      font-family: inherit;
+      color: var(--text);
+      transition: border-color 0.15s;
+    }
+
+    #ca-input:focus {
+      outline: none;
+      border-color: var(--vert);
+      box-shadow: 0 0 0 3px rgba(151,196,89,0.2);
+    }
+
+    .ca-unit {
+      font-size: 1.4rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.92rem;
+    }
+
+    .summary-row:last-child { border-bottom: none; }
+
+    .summary-row .val { font-weight: 700; }
+    .summary-row .val.vert   { color: var(--vert); }
+    .summary-row .val.rouge  { color: var(--orange); }
+    .summary-row .val.muted  { color: var(--muted); }
+
+    .summary-resultat { font-size: 1rem; font-weight: 700; }
+
+    /* ── Flash save ── */
+    @keyframes flashOk {
+      0%   { background: #c8e6c9; }
+      100% { background: transparent; }
+    }
+
+    .flash-ok { animation: flashOk 0.9s ease forwards; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      padding: 0.75rem 1.2rem;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      z-index: 100;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+      max-width: 280px;
+    }
+
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.success { background: #2e7d32; color: white; }
+    #toast.error   { background: #c62828; color: white; }
+
+    /* ── Loading ── */
+    .loading-overlay {
+      text-align: center;
+      padding: 4rem;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-logo">Ouvertures72 <span>— Trésorerie Admin</span></div>
+  <div class="month-nav">
+    <button onclick="navigateMois(-1)" title="Mois précédent">‹</button>
+    <span id="mois-label">—</span>
+    <button onclick="navigateMois(1)" title="Mois suivant">›</button>
+  </div>
+  <a href="/" class="patron-link">Vue patron →</a>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="fixes"       onclick="showTab('fixes')">🟡 Charges fixes</button>
+  <button class="tab"        data-tab="variables"   onclick="showTab('variables')">🟢 Variables</button>
+  <button class="tab"        data-tab="ponctuelles" onclick="showTab('ponctuelles')">🟠 Ponctuelles</button>
+  <button class="tab"        data-tab="ca"          onclick="showTab('ca')">💰 CA du mois</button>
+</nav>
+
+<!-- Fixes -->
+<div class="tab-content active" id="tab-fixes">
+  <div class="tab-inner" id="fixes-inner">
+    <div class="loading-overlay">Chargement…</div>
+  </div>
+</div>
+
+<!-- Variables -->
+<div class="tab-content" id="tab-variables">
+  <div class="tab-inner" id="variables-inner">
+    <div class="loading-overlay">Chargement…</div>
+  </div>
+</div>
+
+<!-- Ponctuelles -->
+<div class="tab-content" id="tab-ponctuelles">
+  <div class="tab-inner" id="ponctuelles-inner">
+    <div class="loading-overlay">Chargement…</div>
+  </div>
+</div>
+
+<!-- CA -->
+<div class="tab-content" id="tab-ca">
+  <div class="tab-inner" id="ca-inner">
+    <div class="loading-overlay">Chargement…</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const MOIS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+  let moisCourant = getMoisActuel();
+  let data = null;
+  let tabActif = 'fixes';
+
+  // ── Helpers ──────────────────────────────────────────────
+
+  function getMoisActuel() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  function afficherMois(mois) {
+    const [y, m] = mois.split('-');
+    return `${MOIS_FR[parseInt(m) - 1]} ${y}`;
+  }
+
+  function formaterEuro(n) {
+    if (n == null) return '—';
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+  }
+
+  function escHtml(str) {
+    return String(str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function flash(el) {
+    el.classList.remove('flash-ok');
+    void el.offsetWidth; // reflow
+    el.classList.add('flash-ok');
+  }
+
+  let toastTimer;
+  function toast(msg, type = 'success') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `show ${type}`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.className = ''; }, 2800);
+  }
+
+  async function apiCall(method, url, body) {
+    try {
+      // PATCH et DELETE ont besoin du mois en query param pour identifier le fichier JSON
+      const finalUrl = (method === 'PATCH' || method === 'DELETE')
+        ? `${url}?mois=${encodeURIComponent(moisCourant)}`
+        : url;
+      const res = await fetch(finalUrl, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      return await res.json();
+    } catch {
+      return { ok: false, error: 'Erreur réseau' };
+    }
+  }
+
+  // ── Navigation ───────────────────────────────────────────
+
+  function navigateMois(delta) {
+    const [y, m] = moisCourant.split('-').map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    moisCourant = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    document.getElementById('mois-label').textContent = afficherMois(moisCourant);
+    chargerDonnees();
+  }
+
+  function showTab(tab) {
+    tabActif = tab;
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+    if (data) renderTab(tab);
+  }
+
+  function renderTab(tab) {
+    if (!data) return;
+    const fns = { fixes: renderFixes, variables: renderVariables, ponctuelles: renderPonctuelles, ca: renderCA };
+    fns[tab] && fns[tab]();
+  }
+
+  // ── Chargement ───────────────────────────────────────────
+
+  async function chargerDonnees() {
+    ['fixes','variables','ponctuelles','ca'].forEach(t => {
+      document.getElementById(`${t}-inner`).innerHTML = '<div class="loading-overlay">Chargement…</div>';
+    });
+
+    try {
+      const res = await fetch(`/api/data/${moisCourant}`);
+      if (!res.ok) throw new Error();
+      data = await res.json();
+      renderTab(tabActif);
+    } catch {
+      toast('Erreur de chargement des données', 'error');
+    }
+  }
+
+  // ── Render Fixes ─────────────────────────────────────────
+
+  function renderFixes() {
+    const container = document.getElementById('fixes-inner');
+    const total = data.fixes.reduce((s, c) => s + c.montant, 0);
+
+    const rows = data.fixes.map(fix => `
+      <tr data-id="${fix.id}">
+        <td class="td-label">${escHtml(fix.intitule)}</td>
+        <td><input type="number" class="input-num f-montant" value="${fix.montant}" min="0" step="0.01"></td>
+        <td class="td-muted">${fix.echeance_jour === 1 ? '1<sup>er</sup>' : fix.echeance_jour} du mois</td>
+        <td>
+          <select class="select-statut statut-${fix.statut} f-statut">
+            <option value="a_regler" ${fix.statut === 'a_regler' ? 'selected' : ''}>À régler</option>
+            <option value="en_cours" ${fix.statut === 'en_cours' ? 'selected' : ''}>En cours</option>
+            <option value="paye"     ${fix.statut === 'paye'     ? 'selected' : ''}>Payé</option>
+          </select>
+        </td>
+      </tr>
+    `).join('');
+
+    container.innerHTML = `
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Intitulé</th>
+            <th>Montant (€)</th>
+            <th>Échéance</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+        <tfoot>
+          <tr>
+            <td>Total charges fixes</td>
+            <td id="total-fixes">${formaterEuro(total)}</td>
+            <td colspan="2"></td>
+          </tr>
+        </tfoot>
+      </table>
+    `;
+
+    container.querySelectorAll('tr[data-id]').forEach(tr => {
+      const id = tr.dataset.id;
+
+      const inputMontant = tr.querySelector('.f-montant');
+      inputMontant.addEventListener('blur', async () => {
+        const montant = parseFloat(inputMontant.value);
+        if (isNaN(montant) || montant < 0) { toast('Montant invalide', 'error'); return; }
+        const r = await apiCall('PATCH', `/api/charges/fixes/${id}`, { montant });
+        if (r.ok) {
+          const fix = data.fixes.find(f => f.id == id);
+          if (fix) fix.montant = montant;
+          document.getElementById('total-fixes').textContent = formaterEuro(data.fixes.reduce((s, c) => s + c.montant, 0));
+          flash(tr);
+        } else {
+          toast('Erreur de sauvegarde', 'error');
+        }
+      });
+
+      const selectStatut = tr.querySelector('.f-statut');
+      selectStatut.addEventListener('change', async () => {
+        const statut = selectStatut.value;
+        const r = await apiCall('PATCH', `/api/charges/fixes/${id}`, { statut });
+        if (r.ok) {
+          selectStatut.className = `select-statut statut-${statut} f-statut`;
+          const fix = data.fixes.find(f => f.id == id);
+          if (fix) fix.statut = statut;
+          flash(tr);
+        } else {
+          toast('Erreur de sauvegarde', 'error');
+        }
+      });
+    });
+  }
+
+  // ── Render Variables ─────────────────────────────────────
+
+  function renderVariables() {
+    const container = document.getElementById('variables-inner');
+    const total = data.variables.reduce((s, c) => s + (c.montant || 0), 0);
+
+    const rows = data.variables.map(v => `
+      <tr data-id="${v.id}" data-seed="${v.is_seed}">
+        <td>
+          ${v.is_seed
+            ? `<span class="td-label">${escHtml(v.intitule)}</span>`
+            : `<input type="text" class="input-text v-intitule" value="${escHtml(v.intitule)}">`
+          }
+        </td>
+        <td><input type="number" class="input-num v-montant" value="${v.montant != null ? v.montant : ''}" min="0" step="0.01" placeholder="0"></td>
+        <td><input type="date" class="input-date v-date" value="${v.date_echeance || ''}"></td>
+        <td>
+          <select class="select-statut statut-${v.statut} v-statut">
+            <option value="a_regler" ${v.statut === 'a_regler' ? 'selected' : ''}>À régler</option>
+            <option value="en_cours" ${v.statut === 'en_cours' ? 'selected' : ''}>En cours</option>
+            <option value="paye"     ${v.statut === 'paye'     ? 'selected' : ''}>Payé</option>
+          </select>
+        </td>
+        <td>${!v.is_seed ? `<button class="btn-delete v-delete" title="Supprimer">✕</button>` : ''}</td>
+      </tr>
+    `).join('');
+
+    container.innerHTML = `
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="min-width:200px">Intitulé</th>
+            <th>Montant (€)</th>
+            <th>Date d'échéance</th>
+            <th>Statut</th>
+            <th style="width:40px"></th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+        <tfoot>
+          <tr>
+            <td>Total charges variables</td>
+            <td id="total-variables">${formaterEuro(total)}</td>
+            <td colspan="3"></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <button class="btn-add-row btn-add-variables" onclick="toggleAddForm('variables')">+ Ajouter une charge</button>
+
+      <div class="add-row-form" id="add-form-variables">
+        <div class="field">
+          <label>Intitulé</label>
+          <input type="text" id="nv-intitule" class="input-text" style="max-width:220px" placeholder="Ex: EDF">
+        </div>
+        <div class="field">
+          <label>Montant (€)</label>
+          <input type="number" id="nv-montant" class="input-num" min="0" step="0.01" placeholder="0">
+        </div>
+        <div class="field">
+          <label>Date d'échéance</label>
+          <input type="date" id="nv-date" class="input-date">
+        </div>
+        <div class="field">
+          <label>Statut</label>
+          <select id="nv-statut" class="select-statut statut-a_regler" onchange="this.className='select-statut statut-'+this.value">
+            <option value="a_regler">À régler</option>
+            <option value="en_cours">En cours</option>
+            <option value="paye">Payé</option>
+          </select>
+        </div>
+        <button class="btn-save-new" style="background:var(--vert)" onclick="addVariable()">Ajouter</button>
+        <button class="btn-cancel-new" onclick="toggleAddForm('variables')">Annuler</button>
+      </div>
+    `;
+
+    container.querySelectorAll('tr[data-id]').forEach(tr => {
+      const id = tr.dataset.id;
+
+      const iMontant = tr.querySelector('.v-montant');
+      iMontant.addEventListener('blur', async () => {
+        const montant = iMontant.value !== '' ? parseFloat(iMontant.value) : null;
+        if (iMontant.value !== '' && (isNaN(montant) || montant < 0)) { toast('Montant invalide', 'error'); return; }
+        const r = await apiCall('PATCH', `/api/charges/variables/${id}`, { montant });
+        if (r.ok) {
+          const v = data.variables.find(x => x.id == id);
+          if (v) v.montant = montant;
+          document.getElementById('total-variables').textContent = formaterEuro(data.variables.reduce((s, c) => s + (c.montant || 0), 0));
+          flash(tr);
+        } else toast('Erreur de sauvegarde', 'error');
+      });
+
+      const iDate = tr.querySelector('.v-date');
+      iDate.addEventListener('change', async () => {
+        const date_echeance = iDate.value || null;
+        const r = await apiCall('PATCH', `/api/charges/variables/${id}`, { date_echeance });
+        if (r.ok) {
+          const v = data.variables.find(x => x.id == id);
+          if (v) v.date_echeance = date_echeance;
+          flash(tr);
+        } else toast('Erreur de sauvegarde', 'error');
+      });
+
+      const sStatut = tr.querySelector('.v-statut');
+      sStatut.addEventListener('change', async () => {
+        const statut = sStatut.value;
+        const r = await apiCall('PATCH', `/api/charges/variables/${id}`, { statut });
+        if (r.ok) {
+          sStatut.className = `select-statut statut-${statut} v-statut`;
+          const v = data.variables.find(x => x.id == id);
+          if (v) v.statut = statut;
+          flash(tr);
+        } else toast('Erreur de sauvegarde', 'error');
+      });
+
+      const iIntitule = tr.querySelector('.v-intitule');
+      if (iIntitule) {
+        iIntitule.addEventListener('blur', async () => {
+          const intitule = iIntitule.value.trim();
+          if (!intitule) { toast('Intitulé requis', 'error'); return; }
+          const r = await apiCall('PATCH', `/api/charges/variables/${id}`, { intitule });
+          if (r.ok) {
+            const v = data.variables.find(x => x.id == id);
+            if (v) v.intitule = intitule;
+            flash(tr);
+          } else toast('Erreur de sauvegarde', 'error');
+        });
+      }
+
+      const btnDel = tr.querySelector('.v-delete');
+      if (btnDel) {
+        btnDel.addEventListener('click', async () => {
+          if (!confirm('Supprimer cette charge ?')) return;
+          const r = await apiCall('DELETE', `/api/charges/variables/${id}`);
+          if (r.ok) {
+            data.variables = data.variables.filter(x => x.id != id);
+            renderVariables();
+            toast('Charge supprimée');
+          } else toast(r.error || 'Erreur de suppression', 'error');
+        });
+      }
+    });
+  }
+
+  async function addVariable() {
+    const intitule     = document.getElementById('nv-intitule').value.trim();
+    const montantRaw   = document.getElementById('nv-montant').value;
+    const montant      = montantRaw !== '' ? parseFloat(montantRaw) : null;
+    const date_echeance = document.getElementById('nv-date').value || null;
+    const statut       = document.getElementById('nv-statut').value;
+
+    if (!intitule) { toast('Intitulé requis', 'error'); return; }
+    if (montantRaw !== '' && (isNaN(montant) || montant < 0)) { toast('Montant invalide', 'error'); return; }
+
+    const r = await apiCall('POST', '/api/charges/variables', { intitule, montant, date_echeance, statut, mois: moisCourant });
+    if (r.ok) {
+      data.variables.push({ id: r.id, intitule, montant, date_echeance, statut, mois: moisCourant, is_seed: 0 });
+      renderVariables();
+      toast('Charge ajoutée');
+    } else toast('Erreur lors de l\'ajout', 'error');
+  }
+
+  // ── Render Ponctuelles ───────────────────────────────────
+
+  function renderPonctuelles() {
+    const container = document.getElementById('ponctuelles-inner');
+    const total = data.ponctuelles.reduce((s, c) => s + c.montant, 0);
+
+    const rows = data.ponctuelles.map(p => `
+      <tr data-id="${p.id}">
+        <td><input type="text" class="input-text p-fournisseur" value="${escHtml(p.fournisseur)}"></td>
+        <td><input type="number" class="input-num p-montant" value="${p.montant}" min="0" step="0.01"></td>
+        <td><input type="date" class="input-date p-date" value="${p.date_echeance || ''}"></td>
+        <td>
+          <select class="select-statut statut-${p.statut} p-statut">
+            <option value="a_regler" ${p.statut === 'a_regler' ? 'selected' : ''}>À régler</option>
+            <option value="en_cours" ${p.statut === 'en_cours' ? 'selected' : ''}>En cours</option>
+            <option value="paye"     ${p.statut === 'paye'     ? 'selected' : ''}>Payé</option>
+          </select>
+        </td>
+        <td><button class="btn-delete p-delete" title="Supprimer">✕</button></td>
+      </tr>
+    `).join('');
+
+    const emptyMsg = data.ponctuelles.length === 0
+      ? '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Aucune charge ponctuelle ce mois</td></tr>'
+      : '';
+
+    container.innerHTML = `
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="min-width:200px">Fournisseur</th>
+            <th>Montant (€)</th>
+            <th>Date d'échéance</th>
+            <th>Statut</th>
+            <th style="width:40px"></th>
+          </tr>
+        </thead>
+        <tbody>${rows || emptyMsg}</tbody>
+        <tfoot>
+          <tr>
+            <td>Total charges ponctuelles</td>
+            <td id="total-ponctuelles">${formaterEuro(total)}</td>
+            <td colspan="3"></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <button class="btn-add-row btn-add-ponctuelles" onclick="toggleAddForm('ponctuelles')">+ Ajouter une dépense</button>
+
+      <div class="add-row-form" id="add-form-ponctuelles">
+        <div class="field">
+          <label>Fournisseur</label>
+          <input type="text" id="np-fournisseur" class="input-text" style="max-width:220px" placeholder="Ex: EDF, Leroy Merlin…">
+        </div>
+        <div class="field">
+          <label>Montant (€) *</label>
+          <input type="number" id="np-montant" class="input-num" min="0" step="0.01" placeholder="0">
+        </div>
+        <div class="field">
+          <label>Date d'échéance</label>
+          <input type="date" id="np-date" class="input-date">
+        </div>
+        <div class="field">
+          <label>Statut</label>
+          <select id="np-statut" class="select-statut statut-a_regler" onchange="this.className='select-statut statut-'+this.value">
+            <option value="a_regler">À régler</option>
+            <option value="en_cours">En cours</option>
+            <option value="paye">Payé</option>
+          </select>
+        </div>
+        <button class="btn-save-new" style="background:var(--orange)" onclick="addPonctuelle()">Ajouter</button>
+        <button class="btn-cancel-new" onclick="toggleAddForm('ponctuelles')">Annuler</button>
+      </div>
+    `;
+
+    container.querySelectorAll('tr[data-id]').forEach(tr => {
+      const id = tr.dataset.id;
+
+      const iFourn = tr.querySelector('.p-fournisseur');
+      iFourn.addEventListener('blur', async () => {
+        const fournisseur = iFourn.value.trim();
+        if (!fournisseur) { toast('Fournisseur requis', 'error'); return; }
+        const r = await apiCall('PATCH', `/api/charges/ponctuelles/${id}`, { fournisseur });
+        if (r.ok) {
+          const p = data.ponctuelles.find(x => x.id == id);
+          if (p) p.fournisseur = fournisseur;
+          flash(tr);
+        } else toast('Erreur de sauvegarde', 'error');
+      });
+
+      const iMontant = tr.querySelector('.p-montant');
+      iMontant.addEventListener('blur', async () => {
+        const montant = parseFloat(iMontant.value);
+        if (isNaN(montant) || montant < 0) { toast('Montant invalide', 'error'); return; }
+        const r = await apiCall('PATCH', `/api/charges/ponctuelles/${id}`, { montant });
+        if (r.ok) {
+          const p = data.ponctuelles.find(x => x.id == id);
+          if (p) p.montant = montant;
+          document.getElementById('total-ponctuelles').textContent = formaterEuro(data.ponctuelles.reduce((s, c) => s + c.montant, 0));
+          flash(tr);
+        } else toast('Erreur de sauvegarde', 'error');
+      });
+
+      const iDate = tr.querySelector('.p-date');
+      iDate.addEventListener('change', async () => {
+        const date_echeance = iDate.value || null;
+        const r = await apiCall('PATCH', `/api/charges/ponctuelles/${id}`, { date_echeance });
+        if (r.ok) {
+          const p = data.ponctuelles.find(x => x.id == id);
+          if (p) p.date_echeance = date_echeance;
+          flash(tr);
+        } else toast('Erreur de sauvegarde', 'error');
+      });
+
+      const sStatut = tr.querySelector('.p-statut');
+      sStatut.addEventListener('change', async () => {
+        const statut = sStatut.value;
+        const r = await apiCall('PATCH', `/api/charges/ponctuelles/${id}`, { statut });
+        if (r.ok) {
+          sStatut.className = `select-statut statut-${statut} p-statut`;
+          const p = data.ponctuelles.find(x => x.id == id);
+          if (p) p.statut = statut;
+          flash(tr);
+        } else toast('Erreur de sauvegarde', 'error');
+      });
+
+      tr.querySelector('.p-delete').addEventListener('click', async () => {
+        if (!confirm('Supprimer cette dépense ?')) return;
+        const r = await apiCall('DELETE', `/api/charges/ponctuelles/${id}`);
+        if (r.ok) {
+          data.ponctuelles = data.ponctuelles.filter(x => x.id != id);
+          renderPonctuelles();
+          toast('Dépense supprimée');
+        } else toast('Erreur de suppression', 'error');
+      });
+    });
+  }
+
+  async function addPonctuelle() {
+    const fournisseur   = document.getElementById('np-fournisseur').value.trim();
+    const montantRaw    = document.getElementById('np-montant').value;
+    const montant       = parseFloat(montantRaw);
+    const date_echeance = document.getElementById('np-date').value || null;
+    const statut        = document.getElementById('np-statut').value;
+
+    if (!fournisseur)           { toast('Fournisseur requis', 'error'); return; }
+    if (isNaN(montant) || montant < 0) { toast('Montant invalide', 'error'); return; }
+
+    const r = await apiCall('POST', '/api/charges/ponctuelles', { fournisseur, montant, date_echeance, statut, mois: moisCourant });
+    if (r.ok) {
+      data.ponctuelles.push({ id: r.id, fournisseur, montant, date_echeance, statut, mois: moisCourant });
+      renderPonctuelles();
+      toast('Dépense ajoutée');
+    } else toast('Erreur lors de l\'ajout', 'error');
+  }
+
+  // ── Render CA ────────────────────────────────────────────
+
+  function renderCA() {
+    const container = document.getElementById('ca-inner');
+    const ca               = data.ca;
+    const totalFixes       = data.fixes.reduce((s, c) => s + c.montant, 0);
+    const totalVariables   = data.variables.reduce((s, c) => s + (c.montant || 0), 0);
+    const totalPonctuelles = data.ponctuelles.reduce((s, c) => s + c.montant, 0);
+    const totalCharges     = totalFixes + totalVariables + totalPonctuelles;
+    const resultat         = ca != null ? ca - totalCharges : null;
+
+    const resClass = resultat == null ? 'muted' : resultat >= 0 ? 'vert' : 'rouge';
+    const resText  = resultat == null ? '—' : (resultat >= 0 ? '+' : '') + formaterEuro(resultat);
+
+    container.innerHTML = `
+      <div class="ca-grid">
+        <div class="ca-card">
+          <h2>Chiffre d'affaires — ${afficherMois(moisCourant)}</h2>
+          <div class="ca-input-group">
+            <input type="number" id="ca-input" value="${ca != null ? ca : ''}" min="0" step="0.01" placeholder="0">
+            <span class="ca-unit">€</span>
+          </div>
+          <button class="btn-primary" onclick="saveCA()">Enregistrer</button>
+        </div>
+
+        <div class="ca-card">
+          <h2>Récapitulatif du mois</h2>
+          <div class="summary-row">
+            <span>CA du mois</span>
+            <span class="val vert">${ca != null ? formaterEuro(ca) : '<span style="color:var(--muted);font-weight:400">Non saisi</span>'}</span>
+          </div>
+          <div class="summary-row">
+            <span>🟡 Charges fixes</span>
+            <span class="val">${formaterEuro(totalFixes)}</span>
+          </div>
+          <div class="summary-row">
+            <span>🟢 Charges variables</span>
+            <span class="val">${formaterEuro(totalVariables)}</span>
+          </div>
+          <div class="summary-row">
+            <span>🟠 Charges ponctuelles</span>
+            <span class="val">${formaterEuro(totalPonctuelles)}</span>
+          </div>
+          <div class="summary-row">
+            <span><strong>Total charges</strong></span>
+            <span class="val"><strong>${formaterEuro(totalCharges)}</strong></span>
+          </div>
+          <div class="summary-row summary-resultat">
+            <span>Résultat</span>
+            <span class="val ${resClass}">${resText}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  async function saveCA() {
+    const input = document.getElementById('ca-input');
+    const montant = parseFloat(input.value);
+    if (isNaN(montant) || montant < 0) { toast('Montant invalide', 'error'); return; }
+
+    const r = await apiCall('POST', '/api/ca', { mois: moisCourant, montant });
+    if (r.ok) {
+      data.ca = montant;
+      renderCA();
+      toast('CA enregistré avec succès');
+    } else toast('Erreur lors de la sauvegarde', 'error');
+  }
+
+  // ── Formulaires d'ajout ──────────────────────────────────
+
+  function toggleAddForm(type) {
+    const form = document.getElementById(`add-form-${type}`);
+    form.classList.toggle('visible');
+  }
+
+  // ── Init ─────────────────────────────────────────────────
+
+  document.getElementById('mois-label').textContent = afficherMois(moisCourant);
+  chargerDonnees();
+</script>
+</body>
+</html>
