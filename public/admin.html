@@ -651,6 +651,25 @@
           </tr>
         </tfoot>
       </table>
+
+      <button class="btn-add-row btn-add-fixes" onclick="toggleAddForm('fixes')">+ Ajouter une charge fixe</button>
+
+      <div class="add-row-form" id="add-form-fixes">
+        <div class="field">
+          <label>Intitulé</label>
+          <input type="text" id="nf-intitule" class="input-text" style="max-width:220px" placeholder="Ex: Assurance véhicule">
+        </div>
+        <div class="field">
+          <label>Jour d'échéance</label>
+          <input type="number" id="nf-echeance" class="input-num" min="1" max="31" placeholder="Ex: 5" style="max-width:90px">
+        </div>
+        <div class="field">
+          <label>Montant (€)</label>
+          <input type="number" id="nf-montant" class="input-num" min="0" step="0.01" placeholder="0">
+        </div>
+        <button class="btn-save-new" style="background:var(--jaune);color:#1a1a2e" onclick="addFix()">Ajouter</button>
+        <button class="btn-cancel-new" onclick="toggleAddForm('fixes')">Annuler</button>
+      </div>
     `;
 
     container.querySelectorAll('tr[data-id]').forEach(tr => {
@@ -685,6 +704,28 @@
         }
       });
     });
+  }
+
+  async function addFix() {
+    const intitule     = document.getElementById('nf-intitule').value.trim();
+    const echeanceRaw  = document.getElementById('nf-echeance').value;
+    const echeance_jour = parseInt(echeanceRaw);
+    const montantRaw   = document.getElementById('nf-montant').value;
+    const montant      = parseFloat(montantRaw);
+
+    if (!intitule)                                           { toast('Intitulé requis', 'error'); return; }
+    if (!echeanceRaw || isNaN(echeance_jour) || echeance_jour < 1 || echeance_jour > 31)
+                                                             { toast('Jour d\'échéance invalide (1–31)', 'error'); return; }
+    if (!montantRaw || isNaN(montant) || montant < 0)        { toast('Montant invalide', 'error'); return; }
+
+    const r = await apiCall('POST', '/api/charges/fixes', { intitule, montant, echeance_jour, mois: moisCourant });
+    if (r.ok) {
+      data.fixes.push({ id: r.id, intitule, montant, echeance_jour, statut: 'a_regler' });
+      renderFixes();
+      toast('Charge fixe ajoutée');
+    } else {
+      toast('Erreur lors de l\'ajout', 'error');
+    }
   }
 
   // ── Render Variables ─────────────────────────────────────

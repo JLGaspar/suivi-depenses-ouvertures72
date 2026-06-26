@@ -47,6 +47,27 @@ app.get('/api/data/:mois', (req, res) => {
 
 // ── Charges fixes ────────────────────────────────────────────────────────────
 
+app.post('/api/charges/fixes', (req, res) => {
+  const { intitule, montant, echeance_jour, mois } = req.body;
+  if (!intitule || montant == null || !echeance_jour || !mois || !MOIS_RE.test(mois))
+    return res.status(400).json({ error: 'Champs manquants ou invalides' });
+
+  const data = lireMois(mois);
+  if (!data) return res.status(404).json({ error: 'Données du mois introuvables' });
+
+  const id = genId(data);
+  data.fixes.push({
+    id,
+    intitule,
+    montant,
+    echeance_jour: parseInt(echeance_jour),
+    statut: 'a_regler',
+  });
+
+  sauvegarder(mois, data);
+  res.json({ ok: true, id });
+});
+
 app.patch('/api/charges/fixes/:id', (req, res) => {
   const ctx = chargerMois(req, res);
   if (!ctx) return;
