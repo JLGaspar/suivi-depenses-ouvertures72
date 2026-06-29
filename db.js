@@ -64,6 +64,7 @@ function seedMois(mois) {
 
   if (data.fixes.length === 0) {
     const prevData = lireMois(getMoisPrecedent(mois));
+    const TEMPLATE_INTITULES = new Set(FIXES_TEMPLATE.map(t => t.intitule));
     for (const tpl of FIXES_TEMPLATE) {
       const prev = prevData && prevData.fixes.find(f => f.intitule === tpl.intitule);
       data.fixes.push({
@@ -73,6 +74,20 @@ function seedMois(mois) {
         echeance_jour: tpl.echeance_jour,
         statut: 'a_regler',
       });
+    }
+    if (prevData) {
+      for (const fix of prevData.fixes) {
+        if (fix.permanente && !TEMPLATE_INTITULES.has(fix.intitule)) {
+          data.fixes.push({
+            id: genId(data),
+            intitule: fix.intitule,
+            montant: fix.montant,
+            echeance_jour: fix.echeance_jour,
+            statut: 'a_regler',
+            permanente: true,
+          });
+        }
+      }
     }
   }
 

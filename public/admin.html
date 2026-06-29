@@ -618,7 +618,7 @@
     const total = data.fixes.reduce((s, c) => s + c.montant, 0);
 
     const rows = data.fixes.map(fix => `
-      <tr data-id="${fix.id}">
+      <tr data-id="${fix.id}" data-permanente="${fix.permanente ? '1' : '0'}">
         <td class="td-label">${escHtml(fix.intitule)}</td>
         <td><input type="number" class="input-num f-montant" value="${fix.montant}" min="0" step="0.01"></td>
         <td class="td-muted">${fix.echeance_jour === 1 ? '1<sup>er</sup>' : fix.echeance_jour} du mois</td>
@@ -629,6 +629,7 @@
             <option value="paye"     ${fix.statut === 'paye'     ? 'selected' : ''}>Payé</option>
           </select>
         </td>
+        <td><button class="btn-delete f-delete" title="Supprimer">✕</button></td>
       </tr>
     `).join('');
 
@@ -640,6 +641,7 @@
             <th>Montant (€)</th>
             <th>Échéance</th>
             <th>Statut</th>
+            <th style="width:40px"></th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -647,7 +649,7 @@
           <tr>
             <td>Total charges fixes</td>
             <td id="total-fixes">${formaterEuro(total)}</td>
-            <td colspan="2"></td>
+            <td colspan="3"></td>
           </tr>
         </tfoot>
       </table>
@@ -703,6 +705,20 @@
           toast('Erreur de sauvegarde', 'error');
         }
       });
+
+      tr.querySelector('.f-delete').addEventListener('click', async () => {
+        const permanente = tr.dataset.permanente === '1';
+        const msg = permanente
+          ? 'Supprimer cette charge pour ce mois et arrêter sa propagation aux mois suivants ?'
+          : 'Supprimer cette charge pour ce mois uniquement ?';
+        if (!confirm(msg)) return;
+        const r = await apiCall('DELETE', `/api/charges/fixes/${id}`);
+        if (r.ok) {
+          data.fixes = data.fixes.filter(f => f.id != id);
+          renderFixes();
+          toast('Charge supprimée');
+        } else toast(r.error || 'Erreur de suppression', 'error');
+      });
     });
   }
 
@@ -720,7 +736,7 @@
 
     const r = await apiCall('POST', '/api/charges/fixes', { intitule, montant, echeance_jour, mois: moisCourant });
     if (r.ok) {
-      data.fixes.push({ id: r.id, intitule, montant, echeance_jour, statut: 'a_regler' });
+      data.fixes.push({ id: r.id, intitule, montant, echeance_jour, statut: 'a_regler', permanente: true });
       renderFixes();
       toast('Charge fixe ajoutée');
     } else {

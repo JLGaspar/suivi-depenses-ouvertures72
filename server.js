@@ -62,10 +62,24 @@ app.post('/api/charges/fixes', (req, res) => {
     montant,
     echeance_jour: parseInt(echeance_jour),
     statut: 'a_regler',
+    permanente: true,
   });
 
   sauvegarder(mois, data);
   res.json({ ok: true, id });
+});
+
+app.delete('/api/charges/fixes/:id', (req, res) => {
+  const ctx = chargerMois(req, res);
+  if (!ctx) return;
+  const { mois, data } = ctx;
+
+  const id = parseInt(req.params.id);
+  if (!data.fixes.some(f => f.id === id)) return res.status(404).json({ error: 'Charge introuvable' });
+
+  data.fixes = data.fixes.filter(f => f.id !== id);
+  sauvegarder(mois, data);
+  res.json({ ok: true });
 });
 
 app.patch('/api/charges/fixes/:id', (req, res) => {
