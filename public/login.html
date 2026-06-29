@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion — Trésorerie Ouvertures72</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f6fa;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #2d2d3a;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .logo {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 0.25rem;
+    }
+
+    .logo span {
+      font-weight: 400;
+      opacity: 0.5;
+      margin-left: 0.3rem;
+    }
+
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin: 1.5rem 0 0.4rem;
+    }
+
+    .subtitle {
+      font-size: 0.88rem;
+      color: #8a8a9a;
+      margin-bottom: 1.8rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #8a8a9a;
+      margin-bottom: 0.4rem;
+    }
+
+    input[type="password"] {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      border: 1.5px solid #e4e6ef;
+      border-radius: 9px;
+      font-size: 1rem;
+      font-family: inherit;
+      color: #2d2d3a;
+      background: #fafafa;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      letter-spacing: 0.2em;
+    }
+
+    input[type="password"]:focus {
+      outline: none;
+      border-color: #7b91d1;
+      box-shadow: 0 0 0 3px rgba(123,145,209,0.15);
+      background: white;
+    }
+
+    button[type="submit"] {
+      margin-top: 1.2rem;
+      width: 100%;
+      padding: 0.7rem;
+      background: #1a1a2e;
+      color: white;
+      border: none;
+      border-radius: 9px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    button[type="submit"]:hover { background: #2d2d50; }
+    button[type="submit"]:active { transform: scale(0.98); }
+
+    .msg {
+      margin-top: 1rem;
+      padding: 0.65rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .msg.erreur {
+      background: #fff3f3;
+      color: #c62828;
+      border: 1px solid #ffcdd2;
+    }
+
+    .msg.bloque {
+      background: #fff3e0;
+      color: #bf360c;
+      border: 1px solid #ffcc80;
+    }
+
+    .blocked-icon {
+      font-size: 2rem;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Ouvertures72 <span>— Admin</span></div>
+    <h1>Connexion</h1>
+    <p class="subtitle">Accès réservé à l'administration</p>
+
+    <script>
+      const params = new URLSearchParams(location.search);
+      const erreur = params.get('erreur');
+      if (erreur === 'bloque') {
+        document.write(`
+          <div class="blocked-icon">🔒</div>
+          <div class="msg bloque">Accès bloqué — trop de tentatives échouées.<br>Fermez et rouvrez le navigateur pour réessayer.</div>
+        `);
+      } else {
+        const errMsg = erreur === 'invalide' ? '<div class="msg erreur">Mot de passe incorrect</div>' : '';
+        document.write(`
+          <form method="POST" action="/login" autocomplete="off">
+            <label for="password">Mot de passe</label>
+            <input type="password" id="password" name="password" autofocus>
+            ${errMsg}
+            <button type="submit">Se connecter</button>
+          </form>
+        `);
+      }
+    </script>
+    <noscript>
+      <form method="POST" action="/login" autocomplete="off">
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" name="password" autofocus>
+        <button type="submit">Se connecter</button>
+      </form>
+    </noscript>
+  </div>
+</body>
+</html>

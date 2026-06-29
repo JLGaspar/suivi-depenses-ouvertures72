@@ -1,11 +1,56 @@
 const express = require('express');
 const path = require('path');
+const session = require('express-session');
 const { lireMois, sauvegarder, genId, seedMois } = require('./db');
 
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(session({
+  secret: 'ouvertures72-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false },
+}));
 app.use(express.static(path.join(__dirname, 'public')));
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+
+const MOT_DE_PASSE = '1101';
+const MAX_ESSAIS = 2;
+
+function requireAuth(req, res, next) {
+  if (req.session.admin) return next();
+  res.redirect('/login');
+}
+
+app.get('/login', (req, res) => {
+  if (req.session.admin) return res.redirect('/admin');
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+app.post('/login', (req, res) => {
+  if (req.session.bloque) {
+    return res.sendFile(path.join(__dirname, 'public', 'login.html'));
+  }
+
+  const essais = req.session.essais || 0;
+
+  if (req.body.password === MOT_DE_PASSE) {
+    req.session.admin = true;
+    req.session.essais = 0;
+    return res.redirect('/admin');
+  }
+
+  const nouvelEssais = essais + 1;
+  if (nouvelEssais > MAX_ESSAIS) {
+    req.session.bloque = true;
+  } else {
+    req.session.essais = nouvelEssais;
+  }
+
+  res.redirect(`/login?erreur=${req.session.bloque ? 'bloque' : 'invalide'}`);
+});
+
+app.get('/admin', requireAuth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
 const MOIS_RE = /^\d{4}-\d{2}$/;
 const STATUTS_VALIDES = ['paye', 'a_regler', 'en_cours'];
