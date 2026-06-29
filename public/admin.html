@@ -75,6 +75,7 @@
     }
 
     .month-nav button:hover { background: rgba(255,255,255,0.2); }
+    .month-nav button:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
 
     #mois-label {
       font-size: 1rem;
@@ -467,7 +468,7 @@
   <div class="month-nav">
     <button onclick="navigateMois(-1)" title="Mois précédent">‹</button>
     <span id="mois-label">—</span>
-    <button onclick="navigateMois(1)" title="Mois suivant">›</button>
+    <button id="btn-mois-suivant" onclick="navigateMois(1)" title="Mois suivant">›</button>
   </div>
   <a href="/" class="patron-link">Vue patron →</a>
 </header>
@@ -571,11 +572,17 @@
 
   // ── Navigation ───────────────────────────────────────────
 
+  function majBoutonSuivant() {
+    document.getElementById('btn-mois-suivant').disabled = (moisCourant >= getMoisActuel());
+  }
+
   function navigateMois(delta) {
+    if (delta > 0 && moisCourant >= getMoisActuel()) return;
     const [y, m] = moisCourant.split('-').map(Number);
     const d = new Date(y, m - 1 + delta, 1);
     moisCourant = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     document.getElementById('mois-label').textContent = afficherMois(moisCourant);
+    majBoutonSuivant();
     chargerDonnees();
   }
 
@@ -1141,6 +1148,7 @@
   // ── Init ─────────────────────────────────────────────────
 
   document.getElementById('mois-label').textContent = afficherMois(moisCourant);
+  majBoutonSuivant();
   chargerDonnees();
 </script>
 </body>

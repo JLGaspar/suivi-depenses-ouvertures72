@@ -76,6 +76,7 @@
     }
 
     .nav-btn:active { background: rgba(255,255,255,0.25); }
+    .nav-btn:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
 
     .refresh-btn {
       background: rgba(255,255,255,0.1);
@@ -279,7 +280,7 @@
   <div class="month-nav">
     <button class="nav-btn" onclick="navigateMois(-1)" title="Mois précédent">‹</button>
     <span id="mois-label">—</span>
-    <button class="nav-btn" onclick="navigateMois(1)" title="Mois suivant">›</button>
+    <button class="nav-btn" id="btn-mois-suivant" onclick="navigateMois(1)" title="Mois suivant">›</button>
   </div>
   <button class="refresh-btn" onclick="chargerDonnees()" title="Actualiser">↻</button>
 </header>
@@ -356,10 +357,16 @@
     return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
   }
 
+  function majBoutonSuivant() {
+    document.getElementById('btn-mois-suivant').disabled = (moisCourant >= getMoisActuel());
+  }
+
   function navigateMois(delta) {
+    if (delta > 0 && moisCourant >= getMoisActuel()) return;
     const [y, m] = moisCourant.split('-').map(Number);
     const d = new Date(y, m - 1 + delta, 1);
     moisCourant = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    majBoutonSuivant();
     chargerDonnees();
   }
 
@@ -490,6 +497,7 @@
   }
 
   let moisCourant = getMoisActuel();
+  majBoutonSuivant();
   chargerDonnees();
 </script>
 </body>
